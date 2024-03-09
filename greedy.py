@@ -23,40 +23,28 @@ def getNeighbors(currentNode, edges):
 def getNextNode(neighbors, dataNodes, path):
     
     nextNode = None
-
-    minWeight = maxsize
-    sameVisitedScoreNodes = []    
-   
-    # if there is more than 1 neighbor, remove last node use
-    if (len(path) != 0 and len(neighbors) > 1):
-
-        for node in neighbors:
-            if (path[-1][0] == node[0]):
-                neighbors.remove(node)
-
-    # get the neighbors that has been visited the same times 
-    minVisited = maxsize 
-    if not dataNodes[neighbors[0][0]] == 0:
-        minVisited = dataNodes[neighbors[0][0]] 
-
+    
+    minVisited = maxsize
+    minVisitedNode = None
     for node in neighbors:
         if (dataNodes[node[0]] < minVisited):
             minVisited = dataNodes[node[0]]
-            sameVisitedScoreNodes.append(node)
-    
-    if (len(sameVisitedScoreNodes) == 0):
-        sameVisitedScoreNodes.append(neighbors[0])
+            minVisitedNode = node
 
+    sameNbVisitedNodes = [minVisitedNode]
+    for node in neighbors:
+        if (dataNodes[minVisitedNode[0]] == dataNodes[node[0]]):
+            sameNbVisitedNodes.append(node)
     
-    # get the less far neighbor 
-    for node in sameVisitedScoreNodes:
+
+    minWeight = maxsize
+    nextNode = None
+    for node in sameNbVisitedNodes:
         if (node[1] < minWeight):
-            minWeight = node[1]
             nextNode = node[0]
+            minWeight = node[1]
     
     return nextNode, minWeight
-
-
 
 
 def greedy(G, pos, startNode, edges):
@@ -78,8 +66,23 @@ def greedy(G, pos, startNode, edges):
         path.append((currentNode, nextNode)) 
         visitedNodes.append(currentNode)
         currentNode = nextNode
-        animation(G, pos, 0.5, currentNode, visitedNodes, path)
-    
+        animation(G, pos, 0.5, "red", currentNode, visitedNodes, path)
+
+    dk = nx.dijkstra_path(G, currentNode, startNode)
+    returnPath = []
+    for i in range(len(dk)):
+        try:
+            returnPath.append((dk[i], dk[i+1]))
+        except:
+            break 
+
+    for edge in edges:
+        if ((edge[0], edge[1]) in returnPath):
+            costs.append(edge[2])
+        if ((edge[1], edge[0]) in returnPath):
+            costs.append(edge[2])
+
+    drawPath(G, pos, returnPath, 2, "blue")
     costs = round(sum(costs), 2)
     print(costs) 
     return path, costs
